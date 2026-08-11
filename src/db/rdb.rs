@@ -1,7 +1,9 @@
 pub mod rdb{
-    use std::collections::HashMap;
+    use std::collections::{HashMap, HashSet};
 
 use uuid::Uuid;
+use chrono::{DateTime, NaiveDateTime, TimeDelta, Utc};
+use mysql::{params,prelude::*,Pool,PooledConn,TxOpts};
 
     #[derive(Debug,Clone)]
     pub struct Credentials{
@@ -89,7 +91,121 @@ use uuid::Uuid;
 
     }
 
+    pub type Logs = Vec<Log>;
+    pub type Hashes = String;
+    pub struct Log{
+        pub comm_type: (bool,bool,bool,bool),
+        pub duration: TimeDelta,
+        pub involved: Vec<Uuid>,
+        pub hash: Hashes,
+        pub is_success: bool,
+        pub chat_history: Vec<(Uuid,DateTime<Utc>,String)>
+    }
+
+    impl Default for Log{
+        fn default() -> Self {
+            Self { comm_type: (false,false,false,true), duration: TimeDelta::zero(), involved: vec![], hash: "".to_string(), is_success:false, chat_history: vec![] }
+        }
+
+    }
+
+    impl Log{
+        pub fn new() -> Self{
+            Self::default()
+        }
+    }
+
+
+
+
+
+
+
+
+
+pub struct Database {
+    pool: Pool,
+}
+
+impl Database {
+
+ //-------------------------------------------------Init APIs----------------------------------------------------
+    pub fn new(url: &str) -> mysql::Result<Self> {
+        Ok(Self {pool: Pool::new(url)?})
+    }
+
+    fn conn(&self) -> mysql::Result<PooledConn> {
+        self.pool.get_conn()
+    }
+
+    pub fn init_dbs(&self) -> mysql::Result<()> {
+        let mut conn = self.conn()?;
+        let mut tx = conn.start_transaction(TxOpts::default())?;
+            for i in std::fs::read_to_string("~/RVoic3/src/db/init.sql").unwrap().split(";"){
+                tx.exec_drop(i.trim(), ())?;
+            }
+        tx.commit()?;
+        Ok(())
+    }
+
+    pub fn clear(&self) -> mysql::Result<()>{
+        let mut conn = self.conn()?;
+        let mut tx = conn.start_transaction(TxOpts::default())?;
+            tx.exec_drop("DROP TABLE Calendar;",())?;
+            tx.exec_drop("DROP TABLE Journal_task_tags;",())?;
+            tx.exec_drop("DROP TABLE Journal_tasks;",())?;
+            tx.exec_drop("DROP TABLE Ledger;",())?;
+            tx.exec_drop("DROP TABLE Note_task_tags;",())?;
+            tx.exec_drop("DROP TABLE Note_tasks;",())?;
+            tx.exec_drop("DROP TABLE Todo_task_tags;",())?;
+            tx.exec_drop("DROP TABLE Todo_tasks;",())?;
+            tx.exec_drop("DROP TABLE tags;",())?;
+        tx.commit()?;
+        Ok(())
+    }
+
+
+    pub fn save_all(&self,features:&Feature_set) -> mysql::Result<()>{
+        let mut conn = self.conn()?;
+        let mut tx = conn.start_transaction(TxOpts::default())?;
+    features.tags.iter().for_each(|x| {
+        self.add_tag(&mut tx, x).unwrap();
+    });
+    
+    tx.commit()?;
+
+    features.calendars.iter().for_each(|x| {
+        self.add_event(x).unwrap();
+    });
+
+    self.save_ledger(&features.finance).unwrap();
+
+    features.journals.iter().for_each(|x| {
+        self.save_journal_task(&x).unwrap();
+    });
+
+    features.notes.iter().for_each(|x| {
+        self.save_note_task(&x).unwrap();
+    });
+
+    features.todos.iter().for_each(|x|{
+        self.save_todo_task(&x).unwrap();
+    });
+        
+
+
+        Ok(())
+    }
+
 
 
 
 }
+
+
+
+
+
+}
+
+

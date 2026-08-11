@@ -1,4 +1,4 @@
-use crate::helper::Helper::CLI;
+use crate::{db::rdb::rdb::Credentials, helper::Helper::CLI};
 
 mod helper;
 mod render;
@@ -16,5 +16,8 @@ fn main() {
         println!("{clargs:?}");
     }
 
-    println!("Hello, world!");
+    
+    let mut creds = Credentials::new(clargs.username, clargs.password, clargs.display_name);
+    
+
 }
