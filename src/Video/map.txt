@@ -1,0 +1,15 @@
+open /dev/video0
+      ↓
+query capabilities
+      ↓
+set format
+      ↓
+set FPS
+      ↓
+allocate buffers
+      ↓
+start streaming
+      ↓
+read frame
+      ↓
+process/encode

@@ -1,6 +1,8 @@
 pub mod Helper{
     use std::process::exit;
 
+use crate::db::rdb::rdb::Credentials;
+
 
 
     const DBG_STR: &str = "";
@@ -8,9 +10,22 @@ pub mod Helper{
     const ERR:i32 = -1;
 
 
+
     #[derive(Debug,Clone)]
     pub struct CLI{
-        pub dbg: bool
+        pub dbg: bool,
+        pub video: bool,
+        pub mic: bool,
+        pub text: bool,
+        pub cred: Option<String>,
+        pub username: Option<String>,
+        pub password: Option<String>,
+        pub display_name: Option<String>,
+        pub db: String,
+        pub db_port: u16,
+        pub db_url: Option<String>,
+        pub peer_list: Option<String>,
+        pub peer_maps: Option<String>
     }
 
 
@@ -22,7 +37,8 @@ pub mod Helper{
 
     impl CLI{
         pub fn new() -> Self{
-            Self {dbg: false  }
+            Self {dbg: false,video:false,mic:false,text:true,cred:None,username:None,password:None,display_name
+            :None,db:"mydb".to_string(),db_port:3306,db_url:None,peer_list:None,peer_maps:None}
         }
 
         pub fn Parse_Args(&mut self){
@@ -30,6 +46,10 @@ pub mod Helper{
            for i in &args{
                 if i == "-d" || i == "--debug" || i == " --DEBUG" || i == "-D"{
                     self.dbg = true;
+                } else if i == "-h" || i == "--help" || i == " --HELP" || i == "-H"{
+                    Help();
+                }  else if i == "-h" || i == "--help" || i == " --HELP" || i == "-H"{
+                    Help();
                 }else{
                     Help();
                 }
