@@ -23,26 +23,20 @@ use v4l::{buffer::Type};
    
 
 
-pub fn x(){
-use v4l::buffer::Type;
-use v4l::io::traits::CaptureStream;
-use v4l::prelude::*;
+    pub fn x(){
+    use v4l::buffer::Type;
+    use v4l::io::traits::CaptureStream;
+    use v4l::prelude::*;
 
-let mut dev = Device::new(0).expect("Failed to open device");
+    let mut dev = Device::new(0).expect("Failed to open device");
 
-let mut stream =
-    MmapStream::with_buffers(&mut dev, Type::VideoCapture, 4).expect("Failed to create buffer stream");
+    let mut stream = MmapStream::with_buffers(&mut dev, Type::VideoCapture, 4).expect("Failed to create buffer stream");
 
-loop {
-    let (buf, meta) = stream.next().unwrap();
-    println!(
-        "Buffer size: {}, seq: {}, timestamp: {}",
-       buf.len(),
-       meta.sequence,
-       meta.timestamp
-   );
-}
+    loop {
+        let (buf, meta) = stream.next().unwrap();
+        println!("Buffer size: {}, seq: {}, timestamp: {}",buf.len(),meta.sequence,meta.timestamp);
+    }
 
-}
+    }
 
 }
